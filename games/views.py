@@ -2,33 +2,16 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 # rest_framework import
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
 from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
 # local imports
 from .models import Game
 from .serializers import GameSerializer
 
 
-class JSONResponse(HttpResponse):
-    '''
-    Custom JSONResponse class extends django's HttpResponse response.
-    Args:
-        data: python object(dictionary)
-
-    Adds to the constructor method following arguments:
-        content: simple json string serialized from the given data
-                 (which is simple python dictionary)
-                 using JSONRenderer().render() method;
-        content_type: adds 'application/json' value to the response header.
-    '''
-    def __init__(self, data, **kwargs):
-        content = JSONRenderer().render(data)
-        kwargs['content_type'] = 'application/json'
-        super().__init__(content, **kwargs)
-
-
-@csrf_exempt
+@api_view(['GET', 'POST'])
 def game_list(request):
     '''
     Returns list of the games or creates a new entry to database.
@@ -41,7 +24,7 @@ def game_list(request):
         '''
         games = Game.objects.all()
         games_serializers = GameSerializer(games, many=True)
-        return JSONResponse(games_serializers.data)
+        return Response(games_serializers.data)
 
     elif request.method == 'POST':
         '''
@@ -52,23 +35,22 @@ def game_list(request):
             saved data along with 201 code in response.
         If values not valid view sends 404 response along with raised errors.
         '''
-        game_data = JSONParser().parse(request)
-        game_serializer = GameSerializer(data=game_data)
+        game_serializer = GameSerializer(data=request.data)
 
         if game_serializer.is_valid():
             game_serializer.save()
-            return JSONResponse(
+            return Response(
                 game_serializer.data,
                 status=status.HTTP_201_CREATED
             )
 
-        return JSONResponse(
+        return Response(
                 game_serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
 
-@csrf_exempt
+@api_view(['GET', 'PUT', 'POST'])
 def game_detail(request, pk):
     '''
     View used to access specific game from the database by given pk.
@@ -80,27 +62,26 @@ def game_detail(request, pk):
     try:
         game = Game.objects.get(pk=pk)
     except:
-        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         '''
         Extracts existing entry
         '''
         game_serializer = GameSerializer(game)
-        return JSONResponse(game_serializer.data)
+        return Response(game_serializer.data)
 
     elif request.method == 'PUT':
         '''
         Updates existing entry
         '''
-        game_data = JSONParser().parse(request)
-        game_serializer = GameSerializer(game, data=game_data)
+        game_serializer = GameSerializer(game, data=request.data)
 
         if game_serializer.is_valid():
             game_serializer.save()
-            return JSONResponse(game_serializer.data)
+            return Response(game_serializer.data)
 
-        return JSONResponse(
+        return Response(
                 game_serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -110,4 +91,4 @@ def game_detail(request, pk):
         Deletes existing entry
         '''
         game.delete()
-        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
