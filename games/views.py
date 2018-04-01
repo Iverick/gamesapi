@@ -2,93 +2,90 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 # rest_framework import
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.parsers import JSONParser
+from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 # local imports
-from .models import Game
-from .serializers import GameSerializer
+from .models import Game, GameCategory, Player, PlayerScore
+from .serializers import GameSerializer, GameCategorySerializer,\
+                         PlayerSerializer, PlayerScoreSerializer
 
 
-@api_view(['GET', 'POST'])
-def game_list(request):
+class GameCategoryList(generics.ListCreateAPIView):
     '''
-    Returns list of the games or creates a new entry to database.
+    View allows GET request retrieves a listing of GameCategory model objects and
+        POST request creates an instance of GameCategory model.
     '''
-    if request.method == 'GET':
-        '''
-        Extracts all entries from the database.
-
-        If request is GET view returns list of serialized database entries
-        '''
-        games = Game.objects.all()
-        games_serializers = GameSerializer(games, many=True)
-        return Response(games_serializers.data)
-
-    elif request.method == 'POST':
-        '''
-        Creates a new entry in the database.
-
-        If request is POST view accepts given json string, serializes it.
-        If values are valid view saves given data in database and returns
-            saved data along with 201 code in response.
-        If values not valid view sends 404 response along with raised errors.
-        '''
-        game_serializer = GameSerializer(data=request.data)
-
-        if game_serializer.is_valid():
-            game_serializer.save()
-            return Response(
-                game_serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
-        return Response(
-                game_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    queryset = GameCategory.objects.all()
+    serializer_class = GameCategorySerializer
+    name = 'gamecategory-list'
 
 
-@api_view(['GET', 'PUT', 'POST'])
-def game_detail(request, pk):
+class GameCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     '''
-    View used to access specific game from the database by given pk.
-    Allows read, update and delete operations with database entries.
-
-    Args:
-        pk(int): 1
+    View allows GET, PUT, PATCH and DELETE requests to retrieve, update and
+        delete a specific instance of GameCategory model.
     '''
-    try:
-        game = Game.objects.get(pk=pk)
-    except:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    queryset = GameCategory.objects.all()
+    serializer_class = GameCategorySerializer
+    name = 'gamecategory-detail'
 
-    if request.method == 'GET':
-        '''
-        Extracts existing entry
-        '''
-        game_serializer = GameSerializer(game)
-        return Response(game_serializer.data)
 
-    elif request.method == 'PUT':
-        '''
-        Updates existing entry
-        '''
-        game_serializer = GameSerializer(game, data=request.data)
+class GameList(generics.ListCreateAPIView):
+    '''
+    View allows GET request retrieves a listing of Game model objects and
+        POST request creates an instance of Game model.
+    '''
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+    name = 'game-list'
 
-        if game_serializer.is_valid():
-            game_serializer.save()
-            return Response(game_serializer.data)
 
-        return Response(
-                game_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+class GameDetail(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    View allows GET, PUT, PATCH and DELETE requests to retrieve, update and
+        delete a specific instance of Game model.
+    '''
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+    name = 'game-detail'
 
-    elif request.method == 'DELETE':
-        '''
-        Deletes existing entry
-        '''
-        game.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class PlayerList(generics.ListCreateAPIView):
+    '''
+    View allows GET request retrieves a listing of Player model objects and
+        POST request creates an instance of Player model.
+    '''
+    queryset = Player.objects.all()
+    serializer_class = PlayerSerializer
+    name = 'player-list'
+
+
+class PlayerDetail(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    View allows GET, PUT, PATCH and DELETE requests to retrieve, update and
+        delete a specific instance of Player model.
+    '''
+    queryset = Player.objects.all()
+    serializer_class = PlayerSerializer
+    name = 'player-detail'
+
+
+class PlayerScoreList(generics.ListCreateAPIView):
+    '''
+    View allows GET request retrieves a listing of PlayerScore model objects
+        and POST request creates an instance of PlayerScore model.
+    '''
+    queryset = PlayerScore.objects.all()
+    serializer_class = PlayerScoreSerializer
+    name = 'playerscore-list'
+
+
+class PlayerScoreDetail(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    View allows GET, PUT, PATCH and DELETE requests to retrieve, update and
+        delete a specific instance of PlayerScore model.
+    '''
+    queryset = PlayerScore.objects.all()
+    serializer_class = PlayerScoreSerializer
+    name = 'playerscore-detail'
