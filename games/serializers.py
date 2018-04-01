@@ -2,7 +2,7 @@
 from rest_framework import serializers
 # local imports
 from .models import Game, GameCategory, Player, PlayerScore
-import .views
+from . import views
 
 
 class GameCategorySerializer(serializers.HyperlinkedModelSerializer):
