@@ -10,8 +10,7 @@ class GameCategorySerializer(serializers.HyperlinkedModelSerializer):
     GameCategorySerializer.serializers
 
     Serializes instances of the GameCategory model of the games app.
-    Games field used to display one to many relationships to objects of Game
-        model.
+    Games field used to display list of objects of Game model.
     '''
     games = serializers.HyperlinkedRelatedField(
         many=True,
