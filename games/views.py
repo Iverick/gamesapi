@@ -1,14 +1,16 @@
 # django imports
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 # rest_framework import
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 # local imports
 from .models import Game, GameCategory, Player, PlayerScore
 from .serializers import GameSerializer, GameCategorySerializer,\
-                         PlayerSerializer, PlayerScoreSerializer
+                    PlayerSerializer, PlayerScoreSerializer, UserSerializer
+from .permissions import IsOwnerOrReadOnly
 
 
 # http://localhost:8000/game-categories/
@@ -38,10 +40,15 @@ class GameList(generics.ListCreateAPIView):
     '''
     View allows GET request retrieves a listing of Game model objects and
         POST request creates an instance of Game model.
+    perform_create method passes an additional owner field to the create
+        method and sets the owner to the user received in the request.
     '''
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     name = 'game-list'
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 # http://localhost:8000/games/<pk>/
@@ -99,6 +106,26 @@ class PlayerScoreDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'playerscore-detail'
 
 
+# http://localhost:8000/users/
+class UserList(generics.ListAPIView):
+    '''
+    View retrieves a list of users.
+    '''
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    name = 'user-list'
+
+
+# http://localhost:8000/users/<pk>/
+class UserDetail(generics.RetrieveAPIView):
+    '''
+    View retrieves details about a specific user.
+    '''
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    name = 'user-detail'
+
+
 # http://localhost:8000/
 class ApiRoot(generics.GenericAPIView):
     '''
@@ -116,5 +143,6 @@ class ApiRoot(generics.GenericAPIView):
                 request=request
             ),
             'games': reverse(GameList.name, request=request),
-            'scores': reverse(PlayerScoreList.name, request=request)
+            'scores': reverse(PlayerScoreList.name, request=request),
+            'users': reverse(UserList.name, request=request)
         })
