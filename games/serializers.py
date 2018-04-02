@@ -1,3 +1,5 @@
+# django imports
+from django.contrib.auth.models import User
 # rest_framework import
 from rest_framework import serializers
 # local imports
@@ -31,7 +33,9 @@ class GameSerializer(serializers.HyperlinkedModelSerializer):
     Game_category field used to show slugified list of instances of the
         GameCategory model. Instances of Game model have many to one
         relationship with instances of GameCategory model.
+    Owner field displays name of an user created a game.
     '''
+    owner = serializers.ReadOnlyField(source='owner.username')
     game_category = serializers.SlugRelatedField(
         queryset=GameCategory.objects.all(),
         slug_field='name'
@@ -39,8 +43,10 @@ class GameSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Game
+        depth = 4
         fields = (
             'url',
+            'owner',
             'game_category',
             'name',
             'release_date',
@@ -108,3 +114,28 @@ class PlayerScoreSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = PlayerScore
         fields = ('url', 'pk', 'score', 'score_date', 'player', 'game')
+
+
+class UserGameSerializer(serializers.HyperlinkedModelSerializer):
+    '''
+    UserGameSerializer.serializers
+
+    Used to serialize game objects related to a user.
+    '''
+    class Meta:
+        model = Game
+        fields = ('url', 'name')
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    '''
+    UserSerializer.UserGameSerializer.serializers
+
+    Used to serialize an user object. Game field adds a list of created games
+        to the user object.
+    '''
+    game = UserGameSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('url', 'pk', 'username', 'games')
