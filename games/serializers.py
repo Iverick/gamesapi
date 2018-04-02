@@ -134,8 +134,8 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     Used to serialize an user object. Game field adds a list of created games
         to the user object.
     '''
-    game = UserGameSerializer(many=True, read_only=True)
+    games = UserGameSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ('url', 'pk', 'username', 'game')
+        fields = ('url', 'pk', 'username', 'games')
