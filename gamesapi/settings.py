@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # REMOVE THE NEXT LINE AFTER FIRST SUCCESFULL START OF THE PROJECT!!!
 # SECRET_KEY = 'i^4mv@6_7rbb&gbp6u5=&f$bo&n6u39fp4ut06=5i^&%79phcu'
 
-with open(BASE_DIR+ '/secret_key.txt') as f:
+with open(BASE_DIR + '/secret_key.txt') as f:
     SECRET_KEY = f.read().strip()
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -120,6 +120,15 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+# Rest Framework settings
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS':
+        'games.pagination.LimitOffsetPaginationWithMaxLimit',
+    'PAGE_SIZE': 5
+}
 
 
 # Internationalization
