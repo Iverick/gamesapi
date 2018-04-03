@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.throttling import ScopedRateThrottle
 # local imports
 from .models import Game, GameCategory, Player, PlayerScore
 from .serializers import GameSerializer, GameCategorySerializer,\
@@ -18,10 +19,14 @@ class GameCategoryList(generics.ListCreateAPIView):
     '''
     View allows GET request retrieves a listing of GameCategory model objects
         and POST request creates an instance of GameCategory model.
+    Throttle scope property defined at settings file of gamesapi project in
+        REST_FRAMEWORK settings.
     '''
     queryset = GameCategory.objects.all()
     serializer_class = GameCategorySerializer
     name = 'gamecategory-list'
+    throttle_scope = 'game-categories'
+    throttle_classes = (ScopedRateThrottle,)
 
 
 # http://localhost:8000/game-categories/<pk>/
@@ -29,10 +34,14 @@ class GameCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     '''
     View allows GET, PUT, PATCH and DELETE requests to retrieve, update and
         delete a specific instance of GameCategory model.
+    Throttle scope property defined at settings file of gamesapi project in
+        REST_FRAMEWORK settings.
     '''
     queryset = GameCategory.objects.all()
     serializer_class = GameCategorySerializer
     name = 'gamecategory-detail'
+    throttle_scope = 'game-categories'
+    throttle_classes = (ScopedRateThrottle,)
 
 
 # http://localhost:8000/games/
