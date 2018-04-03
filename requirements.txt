@@ -2,3 +2,5 @@ Django==1.10.0
 djangorestframework==3.3.3
 httpie
 psycopg2
+django_filter==0.13.0
+django-crispy-forms==1.6.0
