@@ -2,8 +2,10 @@
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+# django_filter imports
+from django_filters import NumberFilter, DateTimeFilter, AllValuesFilter
 # rest_framework import
-from rest_framework import generics, permissions
+from rest_framework import filters, generics, permissions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.throttling import ScopedRateThrottle
@@ -12,6 +14,30 @@ from .models import Game, GameCategory, Player, PlayerScore
 from .serializers import GameSerializer, GameCategorySerializer,\
                     PlayerSerializer, PlayerScoreSerializer, UserSerializer
 from .permissions import IsOwnerOrReadOnly
+
+
+class PlayerScoreFilter(filters.FilterSet):
+    '''
+    Helper class used to add filtering properties for a PlayerScore model.
+    '''
+    min_score = NumberFilter(name='score', lookup_expr='gte')
+    max_score = NumberFilter(name='score', lookup_expr='lte')
+    from_score_date = DateTimeFilter(name='score_date', lookup_expr='gte')
+    to_score_date = DateTimeFilter(name='score_date', lookup_expr='lte')
+    player_name = AllValuesFilter(name='player__name')
+    game_name = AllValuesFilter(name='game__name')
+
+    class Meta:
+        model = PlayerScore
+        fields = (
+            'score',
+            'from_score_date',
+            'to_score_date',
+            # player__name will be accessed as player_name
+            'player_name',
+            # game__name will be accessed as game_name
+            'game_name'
+        )
 
 
 # http://localhost:8000/game-categories/
@@ -27,6 +53,9 @@ class GameCategoryList(generics.ListCreateAPIView):
     name = 'gamecategory-list'
     throttle_scope = 'game-categories'
     throttle_classes = (ScopedRateThrottle,)
+    filter_fields = ('name',)
+    search_fields = ('^name',)
+    ordering_fields = ('name',)
 
 
 # http://localhost:8000/game-categories/<pk>/
@@ -59,6 +88,15 @@ class GameList(generics.ListCreateAPIView):
         permissions.IsAuthenticatedOrReadOnly,
         IsOwnerOrReadOnly,
     )
+    filter_fields = (
+        'owner',
+        'game_category',
+        'name',
+        'release_date',
+        'played'
+    )
+    search_fields = ('^name',)
+    ordering_fields = ('name', 'release_date')
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -88,6 +126,9 @@ class PlayerList(generics.ListCreateAPIView):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
     name = 'player-list'
+    filter_fields = ('name', 'gender')
+    search_fields = ('^name',)
+    ordering_fields = ('name',)
 
 
 # http://localhost:8000/players/<pk>/
@@ -110,6 +151,8 @@ class PlayerScoreList(generics.ListCreateAPIView):
     queryset = PlayerScore.objects.all()
     serializer_class = PlayerScoreSerializer
     name = 'playerscore-list'
+    filter_fields = PlayerScoreFilter
+    ordering_fields = ('score', 'score_date')
 
 
 # http://localhost:8000/player-scores/<pk>/
