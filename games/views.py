@@ -151,7 +151,7 @@ class PlayerScoreList(generics.ListCreateAPIView):
     queryset = PlayerScore.objects.all()
     serializer_class = PlayerScoreSerializer
     name = 'playerscore-list'
-    filter_fields = PlayerScoreFilter
+    filter_class = PlayerScoreFilter
     ordering_fields = ('score', 'score_date')
 
 
